@@ -16,6 +16,6 @@ do
   # xFlowFile / yFlowFile : Output filenames
   # clip = 20000 : Process maximum of 20K frames
   # step = 3 : Sample only every 3rd frame
-  LD_LIBRARY_PATH=/home/hyf/Downloads/opencv/build/lib build/denseFlow_gpu --vidFile=$line --xFlowFile="$dir/flow_x" --yFlowFile="$dir/flow_y" --device_id=$did --type=$type --bound=$bound --clip=20000 --step=1 --sizex=224 --sizey=224
+  LD_LIBRARY_PATH=/home/hyf/Downloads/opencv/build/lib build/denseFlow_gpu --vidFile=$line --imgFile="$dir/img" --xFlowFile="$dir/flow_x" --yFlowFile="$dir/flow_y" --device_id=$did --type=$type --bound=$bound --clip=20000 --step=1 --sizex=224 --sizey=224
   # files.txt contains (absolute) paths to the video files
 done < files.txt

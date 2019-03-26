@@ -27,43 +27,6 @@ namespace toolbox {
 		return res;
 	}
 
-	void serialize( std::vector<std::string> & vec, std::string filename ){
-
-		#ifdef SERIALIZE_BUFFER
-		std::ofstream ofs( filename );
-		boost::archive::text_oarchive ar(ofs);
-		ar & vec;
-		#endif
-
-	}
-
-	void deserialize( std::vector<std::string> & vec, std::string filename ){
-
-		#ifdef SERIALIZE_BUFFER
-		std::ifstream ifs( filename );
-		boost::archive::text_iarchive ar(ifs);
-		ar & vec;
-		#endif
-
-	}
-
-	void serializeToString( std::vector<std::string> & vec, std::stringstream & output ){
-
-		#ifdef SERIALIZE_BUFFER
-	  boost::archive::text_oarchive ar( output );
-	  ar & vec;
-	  #endif
-
-	}
-
-	void deserializeFromString( std::vector<std::string> & vec, std::stringstream & input ){
-
-		#ifdef SERIALIZE_BUFFER
-	  boost::archive::text_iarchive ar( input );
-	  ar & vec;
-	  #endif
-
-	}
 
 
 	#ifdef UNUSED
@@ -137,103 +100,42 @@ namespace toolbox {
 	}
 
 
-	IOManager::IOManager( const std::string img, const std::string flow_x, const std::string flow_y,
-												const std::vector<int64_t> span, const int64_t max_files_chunk, const bool serialize ){
-		serialize_ = serialize;
+	IOManager::IOManager( const std::string img, const std::string flow_x, const std::string flow_y){
 		img_ 		= img;
 		flow_x_	= flow_x;
 		flow_y_ = flow_y;
 
-		archive_i_ = nullptr;
-		archive_x_ = std::vector< toolbox::Serializer * >( span.size(), nullptr );
-		archive_y_ = std::vector< toolbox::Serializer * >( span.size(), nullptr );
-
-		if( serialize ){
-		  if( img_ != "" )
-		    archive_i_ = new toolbox::Serializer( img_, ".image", max_files_chunk );
-
-		  if( flow_x_ != "" ){
-		    for( int i = 0; i < span.size(); i++ ){
-		      std::string tmp_span = (span.size() == 1)?"":"_span" + int_to_string( span[i] );
-		      archive_x_[i] = new toolbox::Serializer( flow_x_ + tmp_span, ".flow", max_files_chunk );
-		    }
-		  }
-
-		  if( flow_y_ != "" ){
-		    for( int i = 0; i < span.size(); i++ ){
-		      std::string tmp_span = (span.size() == 1)?"":"_span" + int_to_string( span[i] );
-		      archive_y_[i] = new toolbox::Serializer( flow_y_ + tmp_span, ".flow", max_files_chunk );
-		    }
-		  }
-		}
 	}
 
 	void IOManager::WriteImg( const cv::Mat & img, const int64_t id ){
+		if( img_.size() ){
+			cv::imwrite( CreateFilename( id, 0 ), img );
+        }
+	}
 
-		if( serialize_ ){
-			if( archive_i_ )
-				archive_i_->PushBack( toolbox::encode( img ) );
-		} else {
-			if( img_.size() )
-				cv::imwrite( CreateFilename( id, -1, 0 ), img );
-      
+	void IOManager::WriteFlow( const cv::Mat & x, const cv::Mat & y, const int64_t id){
+		if( flow_x_.size() ){
+			cv::imwrite( CreateFilename( id, 1 ), x );
 		}
+
+
+		if( flow_y_.size() )
+			cv::imwrite( CreateFilename( id, 2 ), y );
 
 	}
 
-	void IOManager::WriteFlow( const cv::Mat & x, const cv::Mat & y, const int64_t id, const int64_t span_id ){
-		
-		if( serialize_ ){
-			if( archive_x_[span_id] )
-				archive_x_[span_id]->PushBack( toolbox::encode( x ) );
-
-			if( archive_y_[span_id] )
-				archive_y_[span_id]->PushBack( toolbox::encode( y ) );
-		} else {
-			
-			if( flow_x_.size() )
-				cv::imwrite( CreateFilename( id, span_id, 1 ), x );
-
-			if( flow_y_.size() )
-				cv::imwrite( CreateFilename( id, span_id, 2 ), y );
-
-		}
-
-	}
-
-	void IOManager::sync(){
-
-		if( serialize_ ){
-			if( archive_i_ )
-				archive_i_->sync();
-
-			for( auto p : archive_x_ )
-				p->sync();
-
-			for( auto p : archive_y_ )
-				p->sync();
-		}
-
-	}
-
-	std::string IOManager::CreateFilename( const int64_t id, const int64_t span_id, const int64_t type ){
+	std::string IOManager::CreateFilename( const int64_t id, const int64_t type ){
 		std::string name = "";
-		std::string span = "";
-
-		// As span == 1 is default setting, we omit span string in that case.
-		if( span_id > 1 ){
-			span = "_span" + int_to_string( span_id );
-		}
 
 		switch( type ){
 			case 0:
-				name = img_ + int_to_string( id ) + ".jpg";
+				name = img_ + '_' + int_to_string( id ) + ".jpg";
 				break;
 			case 1:
-				name = flow_x_ + '_' + int_to_string( id ) + span + ".jpg";
+				name = flow_x_ + '_' + int_to_string( id ) + ".jpg";
 				break;
 			case 2:
-				name = flow_y_ + '_' + int_to_string( id ) + span + ".jpg";
+				name = flow_y_ + '_' + int_to_string( id ) + ".jpg";
 				break;
 			default:
 				name = "";

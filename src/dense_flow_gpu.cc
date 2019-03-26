@@ -10,10 +10,6 @@ cv::Ptr<cv::cuda::BroxOpticalFlow> alg_brox;
 int main(int argc, char** argv){
   bool serialize = false;
   const int64_t max_files_chunk = MAX_FILES_PER_CHUNK;
-
-  #ifdef SERIALIZE_BUFFER
-  serialize = true;
-  #endif 
   
   // IO operation
   const cv::String keys =
@@ -80,7 +76,7 @@ int main(int argc, char** argv){
   v.seek( offset );
 
   // Process video
-  toolbox::IOManager io_manager( imgFile, xFlowFile, yFlowFile, flow_span, max_files_chunk, serialize );
+  toolbox::IOManager io_manager( imgFile, xFlowFile, yFlowFile);
   ProcessClip( v, io_manager, type, bound, DIM_X, DIM_Y);
 
   std::cout << "\t .. Finished" << std::endl;
@@ -105,7 +101,7 @@ void ProcessClip( Video & v, toolbox::IOManager & io_manager, const int type, co
     if( clip.empty() )
       break;
 
-    if( ++counter % 50 == 0 )
+    if( ++counter % 500 == 0 )
       std::cout << " -- " << counter << std::flush;
 
     io_manager.WriteImg( clip[0].second, counter );
@@ -125,7 +121,7 @@ void ProcessClip( Video & v, toolbox::IOManager & io_manager, const int type, co
 
       ComputeFlow( grey_first, grey_second, type, bound, flow_x, flow_y, DIM_X, DIM_Y);
 
-      io_manager.WriteFlow( flow_x, flow_y, counter, i );
+      io_manager.WriteFlow( flow_x, flow_y, counter);
     }
 
     clip.erase( clip.begin(), clip.begin()+1 );
@@ -133,7 +129,6 @@ void ProcessClip( Video & v, toolbox::IOManager & io_manager, const int type, co
 
   std::cout << " -- " << counter << "." << std::endl;
 
-  io_manager.sync();
 }
 
 void ComputeFlow( const cv::Mat prev, const cv::Mat cur, const int type, const int bound, cv::Mat & flow_x, cv::Mat & flow_y, const int DIM_X, const int DIM_Y ){
@@ -166,7 +161,7 @@ void ComputeFlow( const cv::Mat prev, const cv::Mat cur, const int type, const i
   cv::split( flow, tmp_flow );
 
   cv::Mat imgX, imgY;
-  // We previously rescaled Optical Flow here. Not sure why?
+
   cv::resize( tmp_flow[0], imgX, cv::Size( DIM_X, DIM_Y ) );
   cv::resize( tmp_flow[1], imgY, cv::Size( DIM_X, DIM_Y ) );
   imgX = tmp_flow[0];
