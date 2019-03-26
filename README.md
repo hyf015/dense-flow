@@ -41,7 +41,7 @@ Now, we need to provide a list of the video files we would like to process. Unde
 ```
 find /path/to/your/videos -name "*.mp4" > files.txt
 ```
-This should list all `*.mp4` files line-by-line in the textfile files.txt.
+This should list all `*.mp4` files line-by-line in the textfile files.txt. You can also work with other formats like '.avi'.
 
 Once this is done, you are ready to go. Just execute:
 ```
