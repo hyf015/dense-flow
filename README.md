@@ -1,5 +1,5 @@
 # dense-flow
-Dense optical flow extraction with GPU and opencv3, rewritten from https://github.com/wanglimin/dense_flow and https://github.com/agethen/dense-flow, now contains some useless functions
+Dense optical flow extraction with GPU and opencv3, rewritten from https://github.com/wanglimin/dense_flow and https://github.com/agethen/dense-flow, can be used for extracting and resizing images and optical flow images from video.
 
 # Getting started
 ## Prerequisites
