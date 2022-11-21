@@ -18,7 +18,7 @@ namespace toolbox{
 
   inline std::string int_to_string( int64_t val ){
     std::stringstream out;
-    out << std::setw(5) << std::setfill('0') << val;
+    out << std::setw(10) << std::setfill('0') << val;
     return out.str();
   }
 
